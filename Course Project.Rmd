@@ -1,0 +1,117 @@
+---
+title: "Course Project"
+author: "Me"
+date: "7/19/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Course Project 2
+This r markdown performs an exploratory analysis on data from a personal monitoring device. This device tracked the steps of an anonimous person in intervals of 5 minutes. 
+
+## Reading and manipulationg the data
+
+The data is read using read.csv, the "date" variable is change into a variable of class data using lubridate package
+```{r, results='hide'}
+library(lubridate)
+```
+
+
+```{r reading data}
+actData <- read.csv("activity.csv")
+actData$date <- ymd(actData$date)
+```
+
+## Histogram of the total number of steps taken each day
+
+An additional variable which indicates the day that the observation was taken was added to the dataset.  
+Grouped by dat varible and summarized steps variable.
+```{r histogram}
+DaySteps <- with(actData, tapply(steps, date, sum, na.rm = T))
+hist(DaySteps)
+```
+
+## Mean and median number of steps taken each day
+
+```{r mean and median}
+sum <- summary(DaySteps)
+sum
+```
+The median was of `r sum[[3]]` and the mean of `sum[[4]]`
+
+
+## Time series plot of the average number of steps taken
+
+```{r}
+AvgStp <- with(actData, tapply(steps, date, mean))
+plot(AvgStp~as.Date(names(AvgStp)), main = "Average Steps in Time", type = "l", ylab = "Avg Steps", xlab = "")
+```
+
+## The 5-minute interval that, on average, contains the maximum number of steps
+
+```{r}
+actData$interval <- as.factor(actData$interval)
+AvgStpFreq <- with(actData, tapply(steps, interval, mean, na.rm = T))
+max <- AvgStpFreq[which.max(AvgStpFreq)[[1]]]
+max
+```
+On average in all days the interval `r names(max)` had a maximum number of steps of `r max[[1]]`
+
+## Code to describe and show a strategy for imputing missing data.
+
+The following for loop loops over each observation in steps and if it's NA replaces it with the mean of all the observation with the same interval.
+```{r missing values}
+colSums(is.na(actData))
+for (i in 1:nrow(actData)) {
+        if (is.na(actData$steps[i])) {
+                int <- as.numeric(as.character(actData$interval[i]))
+                actData$steps[i] <- mean(subset(actData, interval == int)$steps, na.rm = T)
+        }
+}
+```
+
+## Histogram of the total number of steps taken each day after missing values are imputed
+
+```{r}
+DaySteps <- with(actData, tapply(steps, date, sum))
+hist(DaySteps)
+sum2 <- summary(DaySteps)
+```
+With the summary calculate abvoce we'll calculate it's difference with the non-imputed dataset.
+```{r summary comparisson}
+sumdif <- c()
+for (i in 1:length(sum)) {
+        sumdif[i] <- sum2[i]-sum[i]
+}
+names(sumdif) <- names(sum)
+sumdif
+```
+It's observed that the minimum, 1st quartile, median and mean increased after imputing the missing values.
+
+## Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
+
+First we  create a variable indicating weather day is a weekday or weekend. 
+```{r type variable}
+actData$weekday <- factor(weekdays(actData$date))
+for (i in 1:nrow(actData)) {
+        if (actData$weekday[i] == "Sunday") {
+                actData$Type[i] <- "Weekend"
+        }
+        else if (actData$weekday[i] == "Saturday") {
+                actData$Type[i] <- "Weekend"
+        }
+        else {
+                actData$Type[i] <- "Weekday"
+        }
+}
+```
+Now we group the data and plot it using the new variable type as a facet. 
+```{r}
+library(lattice)
+DatSteps <- aggregate(steps~ interval + Type, data = actData, mean)
+xyplot(steps~interval | Type, data = DatSteps, type = "l", ylab = "Avrg Steps", xlab = "Interval", scales = list(x = list(cex = 0)))
+```
+
