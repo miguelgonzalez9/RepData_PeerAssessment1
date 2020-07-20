@@ -112,6 +112,6 @@ Now we group the data and plot it using the new variable type as a facet.
 ```{r}
 library(lattice)
 DatSteps <- aggregate(steps~ interval + Type, data = actData, mean)
-xyplot(steps~interval | Type, data = DatSteps, type = "l", ylab = "Avrg Steps", xlab = "Interval", scales = list(x = list(cex = 0)))
+xyplot(steps~interval | Type, data = DatSteps, type = "l", ylab = "Avrg Steps", xlab = "Interval", scales = list(x = list(cex = 0)), layout = c(1,2))
 ```
 We see that on week days there were more steps(avrg) at lower intervals than on weekend. This may signify that on weekday this person walked more on the mornings than on afternoos. On the other hand on weekends there was less activity on the morning and more in the afternoon. 
