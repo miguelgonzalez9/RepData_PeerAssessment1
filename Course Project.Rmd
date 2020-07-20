@@ -1,6 +1,6 @@
 ---
 title: "Course Project"
-author: "Me"
+author: "Miguel González Lugo"
 date: "7/19/2020"
 output: html_document
 ---
@@ -27,8 +27,7 @@ actData$date <- ymd(actData$date)
 
 ## Histogram of the total number of steps taken each day
 
-An additional variable which indicates the day that the observation was taken was added to the dataset.  
-Grouped by dat varible and summarized steps variable.
+Grouping by date.
 ```{r histogram}
 DaySteps <- with(actData, tapply(steps, date, sum, na.rm = T))
 hist(DaySteps)
@@ -46,7 +45,7 @@ The median was of `r sum[[3]]` and the mean of `sum[[4]]`
 ## Time series plot of the average number of steps taken
 
 ```{r}
-AvgStp <- with(actData, tapply(steps, date, mean))
+AvgStp <- with(actData, tapply(steps, date, mean, na.rm = T))
 plot(AvgStp~as.Date(names(AvgStp)), main = "Average Steps in Time", type = "l", ylab = "Avg Steps", xlab = "")
 ```
 
@@ -62,9 +61,9 @@ On average in all days the interval `r names(max)` had a maximum number of steps
 
 ## Code to describe and show a strategy for imputing missing data.
 
-The following for loop loops over each observation in steps and if it's NA replaces it with the mean of all the observation with the same interval.
+The following code loops over each observation in 'steps' and, if it's NA, replaces the observation with the mean of all the observation with the same interval.
 ```{r missing values}
-colSums(is.na(actData))
+c <- colSums(is.na(actData))
 for (i in 1:nrow(actData)) {
         if (is.na(actData$steps[i])) {
                 int <- as.numeric(as.character(actData$interval[i]))
@@ -72,6 +71,7 @@ for (i in 1:nrow(actData)) {
         }
 }
 ```
+Intially, before imputing NA for mean values, the numer of rows with NA was of `r c[[1]]`
 
 ## Histogram of the total number of steps taken each day after missing values are imputed
 
@@ -89,7 +89,7 @@ for (i in 1:length(sum)) {
 names(sumdif) <- names(sum)
 sumdif
 ```
-It's observed that the minimum, 1st quartile, median and mean increased after imputing the missing values.
+It's observed that the minimum, 1st quartile, median and mean increased after imputing the missing values. 
 
 ## Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
 
@@ -114,4 +114,4 @@ library(lattice)
 DatSteps <- aggregate(steps~ interval + Type, data = actData, mean)
 xyplot(steps~interval | Type, data = DatSteps, type = "l", ylab = "Avrg Steps", xlab = "Interval", scales = list(x = list(cex = 0)))
 ```
-
+We see that on week days there were more steps(avrg) at lower intervals than on weekend. This may signify that on weekday this person walked more on the mornings than on afternoos. On the other hand on weekends there was less activity on the morning and more in the afternoon. 
